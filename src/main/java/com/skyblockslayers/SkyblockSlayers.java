@@ -1,5 +1,6 @@
-package com.example.examplemod;
+package com.skyblockslayers;
 
+import com.skyblockslayers.entities.ModEntities;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -16,7 +17,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
@@ -76,8 +76,10 @@ public class SkyblockSlayers {
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
 
+        ModEntities.register(modEventBus);
+
         // Register ourselves for server and other game events we are interested in.
-        // Note that this is necessary if and only if we want *this* class (SkyblockSlayers) to respond directly to events.
+        // Note that this is necessary if and only if we want *this* class (com.skyblockslayers.SkyblockSlayers) to respond directly to events.
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
 
