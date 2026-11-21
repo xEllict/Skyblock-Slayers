@@ -1,0 +1,13 @@
+{
+  "itemGroup.skyblockslayers": "Example Mod Tab",
+  "block.skyblockslayers.example_block": "Example Block",
+  "item.skyblockslayers.example_item": "Example Item",
+
+  "skyblockslayers.configuration.title": "Skyblock Slayers Configs",
+  "skyblockslayers.configuration.section.skyblockslayers.common.toml": "Skyblock Slayers Configs",
+  "skyblockslayers.configuration.section.skyblockslayers.common.toml.title": "Skyblock Slayers Configs",
+  "skyblockslayers.configuration.items": "Item List",
+  "skyblockslayers.configuration.logDirtBlock": "Log Dirt Block",
+  "skyblockslayers.configuration.magicNumberIntroduction": "Magic Number Text",
+  "skyblockslayers.configuration.magicNumber": "Magic Number"
+}
