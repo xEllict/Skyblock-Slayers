@@ -11,5 +11,6 @@
   "skyblockslayers.configuration.magicNumberIntroduction": "Magic Number Text",
   "skyblockslayers.configuration.magicNumber": "Magic Number",
   "entity.skyblockslayers.revenant_horror": "Revenant Horror",
-  "death.attack.true_damage": "%1$s was crushed by a Revenant Horror"
+  "death.attack.true_damage": "%1$s was crushed by a Revenant Horror",
+  "item.skyblockslayers.maddox_batphone": "Maddox's Batphone"
 }

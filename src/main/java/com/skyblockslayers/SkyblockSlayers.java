@@ -1,6 +1,7 @@
 package com.skyblockslayers;
 
 import com.skyblockslayers.entities.ModEntities;
+import com.skyblockslayers.items.ModItems;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -77,6 +78,7 @@ public class SkyblockSlayers {
         CREATIVE_MODE_TABS.register(modEventBus);
 
         ModEntities.register(modEventBus);
+        ModItems.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (com.skyblockslayers.SkyblockSlayers) to respond directly to events.
