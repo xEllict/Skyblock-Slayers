@@ -22,11 +22,11 @@ are to be changed more accurately to how the boss actually performs in the mod_
 
 - Boss Tiers 1 - 4
   - Melee attack (T1-4)
-      - Regular melee attack that the boss performs if you get too close that does 1.5/2.5/8.0/15.0 damage
+      - Regular melee attack that the boss performs if you get too close that does 1.5/2.5/6.0/10.0 damage
   - Life Drain (T1-4)
-    - Every 3 seconds, drains 1.5/2.5/8.0/15.0 damage from the player
+    - Every 3 seconds, drains 1.5/2.5/6.0/10.0 damage from the player
   - Pestilence (T2-4)
-    - not yet implemented
+    - Every second, the boss deals 1.25/3.0/5.0 damage to all players in a 2.5 block radius around it, with 25% of this damage being true damage that ignores armour
   - Enrage (T3-4)
     - not yet implemented
 - Atoned Horror
@@ -39,7 +39,7 @@ are to be changed more accurately to how the boss actually performs in the mod_
   - Thermonuclear
     - Charges up and releases a massive explosion*
 - "Secret" Unlisted Attacks
-  - Yank (T1-5)
+  - Slam Dunk (T1-5)
     - After 5/10 seconds of the boss not being able to perform a hit on the player, the boss yanks the player toward itself, dealing 1.5/2.5/8.0/15.0/TBD damage
   - Teleport (T1-5)
     - After 15 seconds of the boss not hitting the player, it will teleport itself to the player

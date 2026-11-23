@@ -52,6 +52,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.level.pathfinder.PathType;
+import net.minecraft.world.phys.AABB;
 
 public class RevenantHorror extends Monster {
     private static final EntityDataAccessor<Integer> DATA_TIER =
@@ -65,6 +67,8 @@ public class RevenantHorror extends Monster {
     private static final double PULL_VERTICAL = 0.35;
     private int ticksSinceMeleeHit = 0;
     private int ticksSinceYank = 0;
+    private static final double EXTRA_REACH = 0.7; // blocks added on top of vanilla
+    private static final double AURA_RADIUS = 2.5;
 
     private static final ResourceKey<DamageType> TRUE_DAMAGE = ResourceKey.create(
             Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("skyblockslayers", "true_damage"));
@@ -73,6 +77,7 @@ public class RevenantHorror extends Monster {
         super(type, level);
         equipGear();
         applyTierStats(RevenantTier.TIER_1);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
     }
 
     @Override
@@ -140,6 +145,10 @@ public class RevenantHorror extends Monster {
     @Override
     public int getArmorValue() {
         return 0;
+    }
+    @Override
+    protected AABB getAttackBoundingBox() {
+        return super.getAttackBoundingBox().inflate(EXTRA_REACH, 0.0, EXTRA_REACH);
     }
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -228,11 +237,15 @@ public class RevenantHorror extends Monster {
         super.tick();
         if (!this.level().isClientSide) {
             updateHealthBar();
+            if (getTier().getTier() >= 2 && this.tickCount % 20 == 0) {
+                auraAttack();
+            }
             if (attachedPlayer != null) {
                 Player target = this.level().getPlayerByUUID(attachedPlayer);
                 if (target != null && target.isAlive()) {
                     if (this.tickCount % 60 == 0) {
                         target.hurt(this.damageSources().generic(), (float) getTier().getDamage());
+                        target.invulnerableTime = 0;
                     }
                     ticksSinceMeleeHit++;
                     ticksSinceYank++;
@@ -252,6 +265,7 @@ public class RevenantHorror extends Monster {
     private void teleportToPlayer(Player player) {
         this.getNavigation().stop();
         this.moveTo(player.getX(), player.getY(), player.getZ(), this.getYRot(), this.getXRot());
+        player.hurt(trueDamage(), (float) getTier().getDamage());
         this.level().playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.HOSTILE, 1.0F, 0.6F);
     }
@@ -284,6 +298,20 @@ public class RevenantHorror extends Monster {
 
     }
 
+    private void auraAttack() {
+        double total = getTier().getDamage() / 2.0;
+        float normalPart = (float) (total * 0.75);
+        float truePart = (float) (total * 0.25);
+
+        for (Player candidate : this.level().getEntitiesOfClass(Player.class,
+                this.getBoundingBox().inflate(AURA_RADIUS),
+                p -> p.isAlive() && !p.isSpectator() && p.distanceToSqr(this) <= AURA_RADIUS * AURA_RADIUS)) {
+            candidate.invulnerableTime = 0; // stops recent hits from blocking this damage
+            candidate.hurt(this.damageSources().generic(), normalPart);
+            candidate.hurt(trueDamage(), truePart);
+        }
+    }
+
     // attaches to the first player it hits (TEMPORARY, replace once spawn logic exists)
     @Override
     public boolean doHurtTarget(Entity target) {
@@ -295,6 +323,7 @@ public class RevenantHorror extends Monster {
             this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 60, 1, false, false));
             ticksSinceMeleeHit = 0;
             ticksSinceYank = 0;
+            player.invulnerableTime = 0;
         }
         return hit;
     }
@@ -304,6 +333,7 @@ public class RevenantHorror extends Monster {
                 .add(Attributes.MAX_HEALTH, 40.0)
                 .add(Attributes.ATTACK_DAMAGE, 1.5)
                 .add(Attributes.MOVEMENT_SPEED, 0.38)
+                .add(Attributes.WATER_MOVEMENT_EFFICIENCY, 0.75)
                 .add(Attributes.FOLLOW_RANGE, 32.0);
     }
 }
