@@ -14,6 +14,7 @@ public class ModEntities {
             ENTITIES.register("revenant_horror", () ->
                     EntityType.Builder.of(RevenantHorror::new, MobCategory.MONSTER)
                             .sized(0.6F, 1.95F)
+                            .fireImmune()
                             .build("revenant_horror"));
 
     public static void register(IEventBus eventBus) {
