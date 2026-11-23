@@ -54,10 +54,16 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.component.DyedItemColor;
+import net.minecraft.world.entity.ai.control.MoveControl;
 
 public class RevenantHorror extends Monster {
     private static final EntityDataAccessor<Integer> DATA_TIER =
             SynchedEntityData.defineId(RevenantHorror.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> DATA_SHAKING =
+            SynchedEntityData.defineId(RevenantHorror.class, EntityDataSerializers.BOOLEAN);
     // Variable Fields
     private UUID attachedPlayer;
     private static final String[] ROMAN = {"I", "II", "III", "IV"};
@@ -69,6 +75,20 @@ public class RevenantHorror extends Monster {
     private int ticksSinceYank = 0;
     private static final double EXTRA_REACH = 0.7; // blocks added on top of vanilla
     private static final double AURA_RADIUS = 2.5;
+    // ---- Enrage settings (tiers 3 and 4) ----
+    private static final int NORMAL_DURATION = 340;   // 17s normal before the mad state begins
+    private static final int MAD_DURATION = 60;       // 3s: stands still, anvil sound, smoke
+    private static final int ENRAGE_DURATION = 120;   // 6s enraged
+    private static final double ENRAGE_DAMAGE_MULTIPLIER = 2.0;
+    private static final int[] SMOKE_TICKS = {30, 45, 50}; // ticks after the mad state starts
+    private static final int ANVIL_DELAY = 26; // ticks after the mad state starts
+
+    private static final String HEAD_NORMAL = "http://textures.minecraft.net/texture/d8bee23b5c726ae8e3d021e8b4f7525619ab102a4e04be983b61414349aaac67";
+    private static final String HEAD_MAD = "http://textures.minecraft.net/texture/ba7bb34471508b4b20cb35c37a1dd6e8afa7f2d5388822138837caf59c2195d8";
+
+    private enum State { NORMAL, MAD, ENRAGED }
+    private State state = State.NORMAL;
+    private int stateTicks = 0;
 
     private static final ResourceKey<DamageType> TRUE_DAMAGE = ResourceKey.create(
             Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("skyblockslayers", "true_damage"));
@@ -78,6 +98,17 @@ public class RevenantHorror extends Monster {
         equipGear();
         applyTierStats(RevenantTier.TIER_1);
         this.setPathfindingMalus(PathType.WATER, 0.0F);
+        this.moveControl = new MoveControl(this) {
+            @Override
+            public void tick() {
+                if (state == State.MAD) {
+                    this.mob.setZza(0.0F);
+                    this.mob.setXxa(0.0F);
+                    return; // no movement while mad
+                }
+                super.tick();
+            }
+        };
     }
 
     @Override
@@ -93,10 +124,26 @@ public class RevenantHorror extends Monster {
     }
 
     private void equipGear() {
-        equip(EquipmentSlot.HEAD, createSkull());
+        equip(EquipmentSlot.HEAD, createSkull(HEAD_NORMAL));
         equip(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
         equip(EquipmentSlot.LEGS, new ItemStack(Items.CHAINMAIL_LEGGINGS));
         equip(EquipmentSlot.FEET, new ItemStack(Items.DIAMOND_BOOTS));
+    }
+
+    private static ItemStack createSkull(String textureUrl) {
+        String json = "{\"textures\":{\"SKIN\":{\"url\":\"" + textureUrl + "\"}}}";
+        String encoded = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+        GameProfile profile = new GameProfile(UUID.nameUUIDFromBytes(textureUrl.getBytes(StandardCharsets.UTF_8)), "revenant_horror");
+        profile.getProperties().put("textures", new Property("textures", encoded));
+        ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
+        skull.set(DataComponents.PROFILE, new ResolvableProfile(profile));
+        return skull;
+    }
+
+    private static ItemStack createRedChestplate() {
+        ItemStack chest = new ItemStack(Items.LEATHER_CHESTPLATE);
+        chest.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFF0000, false));
+        return chest;
     }
 
     private void equip(EquipmentSlot slot, ItemStack stack) {
@@ -104,16 +151,6 @@ public class RevenantHorror extends Monster {
         stack.set(DataComponents.UNBREAKABLE, new Unbreakable(false));               // armor never breaks
         this.setItemSlot(slot, stack);
         this.setDropChance(slot, 0.0F);                                              // never drops
-    }
-
-    private static ItemStack createSkull() {
-        String json = "{\"textures\":{\"SKIN\":{\"url\":\"http://textures.minecraft.net/texture/d8bee23b5c726ae8e3d021e8b4f7525619ab102a4e04be983b61414349aaac67\"}}}";
-        String encoded = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
-        GameProfile profile = new GameProfile(UUID.nameUUIDFromBytes("revenant_horror".getBytes(StandardCharsets.UTF_8)), "revenant_horror");
-        profile.getProperties().put("textures", new Property("textures", encoded));
-        ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
-        skull.set(DataComponents.PROFILE, new ResolvableProfile(profile));
-        return skull;
     }
 
     @Override
@@ -154,6 +191,7 @@ public class RevenantHorror extends Monster {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_TIER, 1);
+        builder.define(DATA_SHAKING, false);
     }
 
     public RevenantTier getTier() {
@@ -193,6 +231,7 @@ public class RevenantHorror extends Monster {
         if (tag.hasUUID("AttachedPlayer")) {
             attachedPlayer = tag.getUUID("AttachedPlayer");
         }
+        setState(State.NORMAL);
     }
 
     private void updateHealthBar() {
@@ -237,6 +276,7 @@ public class RevenantHorror extends Monster {
         super.tick();
         if (!this.level().isClientSide) {
             updateHealthBar();
+            tickEnrageCycle();
             if (getTier().getTier() >= 2 && this.tickCount % 20 == 0) {
                 auraAttack();
             }
@@ -247,8 +287,10 @@ public class RevenantHorror extends Monster {
                         target.hurt(this.damageSources().generic(), (float) getTier().getDamage());
                         target.invulnerableTime = 0;
                     }
-                    ticksSinceMeleeHit++;
-                    ticksSinceYank++;
+                    if (state != State.MAD) {
+                        ticksSinceMeleeHit++;
+                        ticksSinceYank++;
+                    }
                     if (ticksSinceMeleeHit >= 300) {          // 15 seconds with no melee hit
                         teleportToPlayer(target);
                         ticksSinceMeleeHit = 0;
@@ -260,6 +302,65 @@ public class RevenantHorror extends Monster {
                 }
             }
         }
+    }
+
+    private void tickEnrageCycle() {
+        if (getTier().getTier() < 3) {
+            return; // tiers 1 and 2 never enrage
+        }
+        stateTicks++;
+        switch (state) {
+            case NORMAL -> {
+                if (stateTicks >= NORMAL_DURATION) setState(State.MAD);
+            }
+            case MAD -> {
+                this.getNavigation().stop();
+                if (stateTicks == ANVIL_DELAY) {
+                    this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                            SoundEvents.ANVIL_DESTROY, SoundSource.HOSTILE, 1.0F, 0.5F);
+                }
+                for (int t : SMOKE_TICKS) {
+                    if (stateTicks == t) spawnSmoke();
+                }
+                if (stateTicks >= MAD_DURATION) setState(State.ENRAGED);
+            }
+            case ENRAGED -> {
+                if (stateTicks >= ENRAGE_DURATION) setState(State.NORMAL);
+            }
+        }
+    }
+
+    private void setState(State newState) {
+        this.state = newState;
+        this.stateTicks = 0;
+        this.entityData.set(DATA_SHAKING, newState != State.NORMAL);
+        switch (newState) {
+            case NORMAL -> {
+                equipGear();
+                this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(getTier().getDamage());
+            }
+            case MAD -> {
+                equip(EquipmentSlot.HEAD, createSkull(HEAD_MAD));
+                this.getNavigation().stop();
+            }
+            case ENRAGED -> {
+                equip(EquipmentSlot.CHEST, createRedChestplate());
+                this.getAttribute(Attributes.ATTACK_DAMAGE)
+                        .setBaseValue(getTier().getDamage() * ENRAGE_DAMAGE_MULTIPLIER);
+            }
+        }
+    }
+
+    private void spawnSmoke() {
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE,
+                    this.getX(), this.getY() + this.getBbHeight() + 0.5, this.getZ(),
+                    15, 0.25, 0.1, 0.25, 0.02);
+        }
+    }
+
+    public boolean isEnrageShaking() {
+        return this.entityData.get(DATA_SHAKING);
     }
 
     private void teleportToPlayer(Player player) {

@@ -25,6 +25,11 @@ public class RevenantHorrorRenderer extends HumanoidMobRenderer<RevenantHorror, 
     }
 
     @Override
+    protected boolean isShaking(RevenantHorror entity) {
+        return super.isShaking(entity) || entity.isEnrageShaking();
+    }
+
+    @Override
     protected void renderNameTag(RevenantHorror entity, Component displayName, PoseStack poseStack,
                                  MultiBufferSource buffer, int packedLight, float partialTick) {
         super.renderNameTag(entity, displayName, poseStack, buffer, packedLight, partialTick);

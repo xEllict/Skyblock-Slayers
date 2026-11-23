@@ -24,9 +24,9 @@ are to be changed more accurately to how the boss actually performs in the mod_
   - Melee attack (T1-4)
       - Regular melee attack that the boss performs if you get too close that does 1.5/2.5/6.0/10.0 damage
   - Life Drain (T1-4)
-    - Every 3 seconds, drains 1.5/2.5/6.0/10.0 damage from the player
+    - Every 3 seconds, drains 1.5/2.5/4.0/7.0 damage from the player
   - Pestilence (T2-4)
-    - Every second, the boss deals 1.25/3.0/5.0 damage to all players in a 2.5 block radius around it, with 25% of this damage being true damage that ignores armour
+    - Every second, the boss deals 1.25/2.0/3.5 damage to all players in a 2.5 block radius around it, with 25% of this damage being true damage that ignores armour
   - Enrage (T3-4)
     - not yet implemented
 - Atoned Horror
@@ -115,14 +115,9 @@ Not yet started
 <summary>Revenant Horror</summary>
 
 - T1: Done
-- T2: Not finished, missing:
-    - Pestilence Attack
-- T3: Not finished, missing:
-    - Pestilence Attack
-    - Enrage Attack
-- T4: Not finished, missing:
-    - Pestilence Attack
-    - Enrage Attack
+- T2: Done
+- T3: Done
+- T4: Done
 - Atoned Horror (T5): Not started
 </details>
 
