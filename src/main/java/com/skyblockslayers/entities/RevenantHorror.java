@@ -58,6 +58,12 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.entity.ai.control.MoveControl;
+import com.skyblockslayers.slayer.ModAttachments;
+import com.skyblockslayers.slayer.SlayerData;
+import com.skyblockslayers.slayer.SlayerLevels;
+import com.skyblockslayers.slayer.SlayerProgress;
+import com.skyblockslayers.slayer.SlayerType;
+import net.minecraft.server.level.ServerPlayer;
 
 public class RevenantHorror extends Monster {
     private static final EntityDataAccessor<Integer> DATA_TIER =
@@ -92,6 +98,8 @@ public class RevenantHorror extends Monster {
 
     private static final ResourceKey<DamageType> TRUE_DAMAGE = ResourceKey.create(
             Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("skyblockslayers", "true_damage"));
+    private static final ResourceKey<DamageType> SLAYER_ATTACK = ResourceKey.create(
+            Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("skyblockslayers", "slayer_attack"));
 
     public RevenantHorror(EntityType<? extends Monster> type, Level level) {
         super(type, level);
@@ -273,6 +281,7 @@ public class RevenantHorror extends Monster {
 
     @Override
     public void tick() {
+        if (this.getHealth() <= 0) return;
         super.tick();
         if (!this.level().isClientSide) {
             updateHealthBar();
@@ -284,7 +293,7 @@ public class RevenantHorror extends Monster {
                 Player target = this.level().getPlayerByUUID(attachedPlayer);
                 if (target != null && target.isAlive()) {
                     if (this.tickCount % 60 == 0) {
-                        target.hurt(this.damageSources().generic(), (float) getTier().getDamage());
+                        target.hurt(this.normalDamage(), (float) getTier().getDamage());
                         target.invulnerableTime = 0;
                     }
                     if (state != State.MAD) {
@@ -376,6 +385,11 @@ public class RevenantHorror extends Monster {
                 .registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(TRUE_DAMAGE));
     }
 
+    private DamageSource normalDamage() {
+        return new DamageSource(this.level().registryAccess()
+                .registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(SLAYER_ATTACK));
+    }
+
     @Override
     public void setTarget(@Nullable LivingEntity target) {
         if (attachedPlayer != null && target != null && !target.getUUID().equals(attachedPlayer)) {
@@ -391,7 +405,7 @@ public class RevenantHorror extends Monster {
             flat = flat.normalize().scale(PULL_HORIZONTAL);
         }
         player.hurtMarked = true; // sends the new velocity to the player's client
-        player.hurt(trueDamage(), (float) getTier().getDamage());
+        player.hurt(normalDamage(), ((float) (getTier().getDamage() * 2)));
         player.setDeltaMovement(player.getDeltaMovement().add(flat.x, PULL_VERTICAL, flat.z));
         this.level().playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, SoundSource.HOSTILE, 1.0F, 0.6F);
@@ -408,9 +422,52 @@ public class RevenantHorror extends Monster {
                 this.getBoundingBox().inflate(AURA_RADIUS),
                 p -> p.isAlive() && !p.isSpectator() && p.distanceToSqr(this) <= AURA_RADIUS * AURA_RADIUS)) {
             candidate.invulnerableTime = 0; // stops recent hits from blocking this damage
-            candidate.hurt(this.damageSources().generic(), normalPart);
+            candidate.hurt(this.normalDamage(), normalPart);
             candidate.hurt(trueDamage(), truePart);
         }
+    }
+
+    @Override
+    public void die(DamageSource source) {
+        super.die(source);
+        if (!this.level().isClientSide && attachedPlayer != null) {
+            rewardAttachedPlayer();
+        }
+    }
+
+    private void rewardAttachedPlayer() {
+        if (!(this.level().getPlayerByUUID(attachedPlayer) instanceof ServerPlayer player)) {
+            return; // the attached player isn't online in this world
+        }
+        RevenantTier tier = getTier();
+        SlayerType slayer = SlayerType.REVENANT_HORROR;
+
+        // XP and rng meter XP (same amount), plus one more kill on this tier
+        SlayerData data = player.getData(ModAttachments.SLAYER_DATA);
+        SlayerProgress progress = data.get(slayer)
+                .addXp(tier.getXp())
+                .addRngMeterXp(tier.getXp())
+                .addCompletion(tier.getTier());
+        player.setData(ModAttachments.SLAYER_DATA, data.with(slayer, progress));
+
+        int level = SlayerLevels.getLevel(slayer, progress.xp());
+
+        Component progressText;
+        if (level >= SlayerLevels.MAX_LEVEL) {
+            progressText = Component.literal("LVL MAXED OUT!")
+                    .withStyle(ChatFormatting.BOLD, ChatFormatting.GREEN);
+        } else {
+            progressText = Component.literal("Next LVL in ").withStyle(ChatFormatting.GRAY)
+                    .append(Component.literal(SlayerLevels.getXpToNextLevel(slayer, progress.xp()) + "XP")
+                            .withStyle(ChatFormatting.LIGHT_PURPLE));
+        }
+
+        player.sendSystemMessage(Component.literal("SLAYER QUEST COMPLETE!")
+                .withStyle(ChatFormatting.BOLD, ChatFormatting.GREEN));
+        player.sendSystemMessage(Component.literal("  " + slayer.getMobName() + " Slayer LVL " + level)
+                .withStyle(ChatFormatting.YELLOW)
+                .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_PURPLE))
+                .append(progressText));
     }
 
     // attaches to the first player it hits (TEMPORARY, replace once spawn logic exists)

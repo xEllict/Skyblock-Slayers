@@ -61,6 +61,7 @@ public class SlayerDetailScreen extends SlayerPanelScreen {
             RevenantTier stats = RevenantTier.byTier(tier);
             double damage = stats.getDamage();
             double health = stats.getHealth();
+            double xp = stats.getXp();
             if (tier == 1) {
                 text.append(colored(slayer.getDisplayName().getString() + " " + tier + "\n", ChatFormatting.GREEN));
                 text.append(colored("Beginner\n\n", ChatFormatting.GRAY));
@@ -107,7 +108,7 @@ public class SlayerDetailScreen extends SlayerPanelScreen {
 
             text.append("\n\n"); // 2 blank lines
             text.append(colored("Reward: ", ChatFormatting.GRAY));
-            text.append(colored("5 Slayer XP\n", ChatFormatting.LIGHT_PURPLE));
+            text.append(colored(formatNumber(xp) + " Slayer XP\n", ChatFormatting.LIGHT_PURPLE));
             text.append(colored("+ Boss Drops", ChatFormatting.GRAY));
         }
         return text;
@@ -130,14 +131,15 @@ public class SlayerDetailScreen extends SlayerPanelScreen {
 
     private int lineHeight() { return Math.max(1, Math.round(this.font.lineHeight * TEXT_SCALE)); }
 
-    // ---- window position (the lower half of the space to the right of the buttons) ----
-    private int boxLeft() { return left + LEFT_PADDING + BUTTON_WIDTH + 8; }
-    private int boxRight() { return left + PANEL_WIDTH - 8; }
-    private int boxBottom() { return top + PANEL_HEIGHT - 8; }
-    private int boxTop() {
-        int regionTop = top + TOP_PADDING;
-        return regionTop + (boxBottom() - regionTop) / 2;
-    }
+    // ---- window position (outside the main panel, on its right side) ----
+    private static final int INFO_GAP = 4;                    // space between the main panel and the window
+    private static final int INFO_WIDTH = 118;    // window width
+
+    private int boxLeft() { return left + PANEL_WIDTH + INFO_GAP; }
+    private int boxRight() { return boxLeft() + INFO_WIDTH; }
+    private int boxTop() { return top; }                      // same height as the main panel
+    private int boxBottom() { return top + PANEL_HEIGHT; }
+
     private int viewHeight() { return boxBottom() - boxTop() - 2 * WINDOW_PADDING; }
     private int textWidth() { return boxRight() - boxLeft() - 2 * WINDOW_PADDING - SCROLLBAR_WIDTH - 2; }
     private int maxScroll() { return Math.max(0, wrappedLines.size() * lineHeight() - viewHeight()); }
@@ -157,11 +159,12 @@ public class SlayerDetailScreen extends SlayerPanelScreen {
                 selectTier(i + 1);
             }
         }
-        if (selectedTier == 0) {
-            return; // nothing hovered yet
-        }
+        graphics.fill(boxLeft() - 1, boxTop() - 1, boxRight() + 1, boxBottom() + 1, 0xFF000000); // outline
+        graphics.fill(boxLeft(), boxTop(), boxRight(), boxBottom(), 0xF0100010);                   // dark body
 
-        graphics.fill(boxLeft(), boxTop(), boxRight(), boxBottom(), 0xF0100010);
+        if (selectedTier == 0) {
+            return; // nothing hovered yet, so the window stays empty
+        }
 
         int viewTop = boxTop() + WINDOW_PADDING;
         int max = maxScroll();
