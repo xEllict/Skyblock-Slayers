@@ -2,7 +2,6 @@
 Skyblock Slayers
 </h1>
 
-
 <h2>Mod Description/Purpose</h2>
 
 <p align="center">Skyblock Slayers aims to bring the slayer bosses from Hypixel Skyblock, a persistent MMO-type
@@ -67,7 +66,39 @@ Not yet started
 
 <details>
 <summary>Revenant Horror</summary>
-Not yet started
+
+_Fields marked with an asterisk (*) indicate a required slayer level to be dropped, with specification below:_
+
+
+ - Slayer level locked drops
+   - Revenant Viscera | LVL 2
+   - Undead Catalyst | LVL 3
+   - Revenant Catalyst | LVL 5
+   - Beheaded Horror | LVL 6
+ 
+ 
+ - Tier 1
+   - 1 - 2x Revenant Flesh 
+ - Tier 2
+   - 2 - 5x Revenant Flesh
+   - Foul Flesh | 35%
+   - Undead Catalyst* | 10%
+   - Revenant Catalyst* | 5%
+ - Tier 3
+   - 6 - 10x Revenant Flesh
+   - Foul Flesh | 50%
+   - Undead Catalyst* | 20%
+   - Revenant Catalyst* | 10%
+   - Smite VI book | 4%
+   - Beheaded Horror* | 1.5%
+ - Tier 4
+   - 12 - 20x Revenant Flesh
+   - 2 Foul Flesh | 35%
+   - Undead Catalyst* | 33.33¯%
+   - Revenant Catalyst* | 16.67¯%
+   - Revenant Viscera* | 15%
+   - Smite VI book | 6.25%
+   - Beheaded Horror* | 2.5%
 </details>
 <details>
 <summary>Tarantula Broodfather</summary>
@@ -146,12 +177,12 @@ I, the creator of this mod have used Artificial Intelligence to help in the
 creation/development process, not because I'm trying to make a low-effort mod for
 some dumb reason, but because minecraft modding requires severe understanding of
 the mappings and imports and the Java programming language as a whole. I am not 
-very experienced in minecraft modding or even Java for that matter, and am making sure that
-I'm making a mod that is hopefully not easily detectable as having used AI in it's usage (from playing
+very experienced in minecraft modding or even Java for that matter, and I am making sure that
+I'm making a mod that is hopefully not easily detectable as having used AI in its usage (from playing
 it at the least), not to hide the fact that I used AI but rather because I'm being honest and open about the use here
 and to make this mod to not feel like any sort of low-quality AI-made slop.
 
-Furthermore, I am not the original creator of any of the ideas used in this mod regarding the 
+Furthermore, I am not the original creator of the ideas used in this mod regarding the 
 slayers or their bosses, with the sole exception of the skeleton slayer (name still not decided),
 as for it feels like a better fit for a minecraft mod than Sven AKA wolf slayer does. I am not trying
 to violate any law or licensing that Hypixel have over their property by the creation of this mod, and
