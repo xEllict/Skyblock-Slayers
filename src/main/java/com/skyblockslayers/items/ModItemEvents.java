@@ -12,5 +12,13 @@ public class ModItemEvents {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(ModItems.MADDOX_BATPHONE);
         }
+        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+            event.accept(ModItems.REVENANT_FLESH);
+            event.accept(ModItems.FOUL_FLESH);
+            event.accept(ModItems.UNDEAD_CATALYST);
+            event.accept(ModItems.REVENANT_CATALYST);
+            event.accept(ModItems.REVENANT_VISCERA);
+            event.accept(ModItems.BEHEADED_HORROR);
+        }
     }
 }

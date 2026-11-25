@@ -13,5 +13,11 @@
   "entity.skyblockslayers.revenant_horror": "Revenant Horror",
   "death.attack.true_damage": "%1$s failed their slayer boss",
   "death.attack.slayer_attack": "%1$s failed their slayer boss",
-  "item.skyblockslayers.maddox_batphone": "Maddox's Batphone"
+  "item.skyblockslayers.maddox_batphone": "Maddox's Batphone",
+  "item.skyblockslayers.revenant_flesh": "Revenant Flesh",
+  "item.skyblockslayers.foul_flesh": "Foul Flesh",
+  "item.skyblockslayers.undead_catalyst": "Undead Catalyst",
+  "item.skyblockslayers.revenant_catalyst": "Revenant Catalyst",
+  "item.skyblockslayers.revenant_viscera": "Revenant Viscera",
+  "item.skyblockslayers.beheaded_horror": "Beheaded Horror"
 }

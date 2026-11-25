@@ -64,6 +64,10 @@ import com.skyblockslayers.slayer.SlayerLevels;
 import com.skyblockslayers.slayer.SlayerProgress;
 import com.skyblockslayers.slayer.SlayerType;
 import net.minecraft.server.level.ServerPlayer;
+import com.skyblockslayers.slayer.SlayerUnlocks;
+import java.util.ArrayList;
+import java.util.List;
+import com.skyblockslayers.slayer.DropEntry;
 
 public class RevenantHorror extends Monster {
     private static final EntityDataAccessor<Integer> DATA_TIER =
@@ -281,8 +285,8 @@ public class RevenantHorror extends Monster {
 
     @Override
     public void tick() {
-        if (this.getHealth() <= 0) return;
         super.tick();
+        if (this.getHealth() <= 0) return;
         if (!this.level().isClientSide) {
             updateHealthBar();
             tickEnrageCycle();
@@ -442,34 +446,80 @@ public class RevenantHorror extends Monster {
         RevenantTier tier = getTier();
         SlayerType slayer = SlayerType.REVENANT_HORROR;
 
-        // XP and rng meter XP (same amount), plus one more kill on this tier
+        // level before the kill
         SlayerData data = player.getData(ModAttachments.SLAYER_DATA);
+        int oldLevel = SlayerLevels.getLevel(slayer, data.get(slayer).xp());
+
+        // XP and rng meter XP (same amount), plus one more kill on this tier
         SlayerProgress progress = data.get(slayer)
                 .addXp(tier.getXp())
                 .addRngMeterXp(tier.getXp())
                 .addCompletion(tier.getTier());
         player.setData(ModAttachments.SLAYER_DATA, data.with(slayer, progress));
 
+        // level after the kill
         int level = SlayerLevels.getLevel(slayer, progress.xp());
 
+        player.sendSystemMessage(Component.literal("SLAYER QUEST COMPLETE!")
+                .withStyle(ChatFormatting.BOLD, ChatFormatting.GREEN));
+
+        // level up: show the new level and everything unlocked
+        if (level > oldLevel) {
+            List<Component> unlockLines = new ArrayList<>();
+            for (int l = oldLevel + 1; l <= level; l++) {
+                for (SlayerUnlocks.Unlock unlock : SlayerUnlocks.getUnlocks(slayer, l)) {
+                    unlockLines.add(Component.literal("  - ").withStyle(ChatFormatting.GRAY)
+                            .append(SlayerUnlocks.describe(unlock)));
+                }
+            }
+
+            player.sendSystemMessage(Component.literal("SLAYER LEVEL UP " + oldLevel + " -> " + level + "!")
+                    .withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
+            if (!unlockLines.isEmpty()) {
+                player.sendSystemMessage(Component.literal("UNLOCKED:").withStyle(ChatFormatting.YELLOW));
+                for (Component line : unlockLines) {
+                    player.sendSystemMessage(line);
+                }
+            }
+        }
+
+        // final line, always shown
         Component progressText;
         if (level >= SlayerLevels.MAX_LEVEL) {
             progressText = Component.literal("LVL MAXED OUT!")
                     .withStyle(ChatFormatting.BOLD, ChatFormatting.GREEN);
         } else {
             progressText = Component.literal("Next LVL in ").withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal(SlayerLevels.getXpToNextLevel(slayer, progress.xp()) + "XP")
+                    .append(Component.literal(SlayerLevels.getXpToNextLevel(slayer, progress.xp()) + " XP")
                             .withStyle(ChatFormatting.LIGHT_PURPLE));
         }
-
-        player.sendSystemMessage(Component.literal("SLAYER QUEST COMPLETE!")
-                .withStyle(ChatFormatting.BOLD, ChatFormatting.GREEN));
         player.sendSystemMessage(Component.literal("  " + slayer.getMobName() + " Slayer LVL " + level)
                 .withStyle(ChatFormatting.YELLOW)
                 .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_PURPLE))
                 .append(progressText));
     }
 
+    @Override
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
+        super.dropCustomDeathLoot(level, source, recentlyHit);
+
+        // the attached player's current Revenant Horror level (0 if nobody is attached or online)
+        int slayerLevel = 0;
+        if (attachedPlayer != null) {
+            Player player = level.getPlayerByUUID(attachedPlayer);
+            if (player != null) {
+                int xp = player.getData(ModAttachments.SLAYER_DATA).get(SlayerType.REVENANT_HORROR).xp();
+                slayerLevel = SlayerLevels.getLevel(SlayerType.REVENANT_HORROR, xp);
+            }
+        }
+
+        for (DropEntry entry : RevenantDrops.getDrops(getTier())) {
+            ItemStack stack = entry.roll(level, this.random, slayerLevel);
+            if (!stack.isEmpty()) {
+                this.spawnAtLocation(stack);
+            }
+        }
+    }
     // attaches to the first player it hits (TEMPORARY, replace once spawn logic exists)
     @Override
     public boolean doHurtTarget(Entity target) {
@@ -492,6 +542,8 @@ public class RevenantHorror extends Monster {
                 .add(Attributes.ATTACK_DAMAGE, 1.5)
                 .add(Attributes.MOVEMENT_SPEED, 0.38)
                 .add(Attributes.WATER_MOVEMENT_EFFICIENCY, 0.75)
-                .add(Attributes.FOLLOW_RANGE, 32.0);
+                .add(Attributes.FOLLOW_RANGE, 64.0)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.5);
+
     }
 }
