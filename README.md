@@ -17,18 +17,18 @@ within the context of base Minecraft.</p>
 <summary>Revenant Horror</summary>
 For damage values listed, they refer to respective boss tiers; T1/T2/T3/T4
 
-_Fields marked with an asterisk indicate temporary information taken from the Hypixel Skyblock Wiki that
+_Fields marked with an asterisk (*) indicate temporary information taken from the Hypixel Skyblock Wiki that
 are to be changed more accurately to how the boss actually performs in the mod_
 
 - Boss Tiers 1 - 4
   - Melee attack (T1-4)
-      - Regular melee attack that the boss performs if you get too close that does 1.5/2.5/6.0/10.0 damage
+      - Regular melee attack that the boss performs if you get too close that does 1.5/2.5/4.0/7.0 damage
   - Life Drain (T1-4)
     - Every 3 seconds, drains 1.5/2.5/4.0/7.0 damage from the player
   - Pestilence (T2-4)
     - Every second, the boss deals 1.25/2.0/3.5 damage to all players in a 2.5 block radius around it, with 25% of this damage being true damage that ignores armour
   - Enrage (T3-4)
-    - not yet implemented
+    - After 17 seconds, the boss enters a mad state, then after 3 more seconds, enrages for 6 seconds, dealing 2x melee damage during that time
 - Atoned Horror
   - Melee Attack
     - Regular melee attack that the boss performs if you get too close that does TBD damage
@@ -40,9 +40,9 @@ are to be changed more accurately to how the boss actually performs in the mod_
     - Charges up and releases a massive explosion*
 - "Secret" Unlisted Attacks
   - Slam Dunk (T1-5)
-    - After 5/10 seconds of the boss not being able to perform a hit on the player, the boss yanks the player toward itself, dealing 1.5/2.5/8.0/15.0/TBD damage
+    - After 5/10 seconds of the boss not being able to perform a hit on the player, the boss yanks the player toward itself, dealing 3.0/5.0/8.0/14.0/TBD damage
   - Teleport (T1-5)
-    - After 15 seconds of the boss not hitting the player, it will teleport itself to the player
+    - After 15 seconds of the boss not hitting the player, it will teleport itself to the player, also dealing 1.5/2.5/4.0/7.0/TBD true damage
 </details>
 <details>
 <summary>Tarantula Broodfather</summary>
