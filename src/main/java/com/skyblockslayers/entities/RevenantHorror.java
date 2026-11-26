@@ -1,4 +1,5 @@
 package com.skyblockslayers.entities;
+import com.skyblockslayers.slayer.*;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -58,16 +59,10 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.entity.ai.control.MoveControl;
-import com.skyblockslayers.slayer.ModAttachments;
-import com.skyblockslayers.slayer.SlayerData;
-import com.skyblockslayers.slayer.SlayerLevels;
-import com.skyblockslayers.slayer.SlayerProgress;
-import com.skyblockslayers.slayer.SlayerType;
 import net.minecraft.server.level.ServerPlayer;
-import com.skyblockslayers.slayer.SlayerUnlocks;
+import com.skyblockslayers.slayer.ModSounds;
 import java.util.ArrayList;
 import java.util.List;
-import com.skyblockslayers.slayer.DropEntry;
 
 public class RevenantHorror extends Monster {
     private static final EntityDataAccessor<Integer> DATA_TIER =
@@ -465,6 +460,7 @@ public class RevenantHorror extends Monster {
 
         // level up: show the new level and everything unlocked
         if (level > oldLevel) {
+            player.playNotifySound(ModSounds.LEVEL_UP.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
             List<Component> unlockLines = new ArrayList<>();
             for (int l = oldLevel + 1; l <= level; l++) {
                 for (SlayerUnlocks.Unlock unlock : SlayerUnlocks.getUnlocks(slayer, l)) {
@@ -474,7 +470,7 @@ public class RevenantHorror extends Monster {
             }
 
             player.sendSystemMessage(Component.literal("SLAYER LEVEL UP " + oldLevel + " -> " + level + "!")
-                    .withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
+                    .withStyle(ChatFormatting.BOLD, ChatFormatting.LIGHT_PURPLE));
             if (!unlockLines.isEmpty()) {
                 player.sendSystemMessage(Component.literal("UNLOCKED:").withStyle(ChatFormatting.YELLOW));
                 for (Component line : unlockLines) {
@@ -503,21 +499,37 @@ public class RevenantHorror extends Monster {
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
         super.dropCustomDeathLoot(level, source, recentlyHit);
 
-        // the attached player's current Revenant Horror level (0 if nobody is attached or online)
+        // the attached player and their current Revenant Horror level (0 if nobody is attached or online)
+        ServerPlayer slayerPlayer = null;
         int slayerLevel = 0;
-        if (attachedPlayer != null) {
-            Player player = level.getPlayerByUUID(attachedPlayer);
-            if (player != null) {
-                int xp = player.getData(ModAttachments.SLAYER_DATA).get(SlayerType.REVENANT_HORROR).xp();
-                slayerLevel = SlayerLevels.getLevel(SlayerType.REVENANT_HORROR, xp);
+        if (attachedPlayer != null && level.getPlayerByUUID(attachedPlayer) instanceof ServerPlayer sp) {
+            slayerPlayer = sp;
+            int xp = sp.getData(ModAttachments.SLAYER_DATA).get(SlayerType.REVENANT_HORROR).xp();
+            slayerLevel = SlayerLevels.getLevel(SlayerType.REVENANT_HORROR, xp);
+        }
+
+        DropRarity rarest = null;
+        for (DropEntry entry : RevenantDrops.getDrops(getTier())) {
+            ItemStack stack = entry.roll(level, this.random, slayerLevel);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            this.spawnAtLocation(stack);
+
+            DropRarity rarity = entry.rarity();
+            if (rarity != null) {
+                if (slayerPlayer != null) {
+                    slayerPlayer.sendSystemMessage(rarity.createMessage(stack));
+                }
+                if (rarest == null || rarity.ordinal() > rarest.ordinal()) {
+                    rarest = rarity;
+                }
             }
         }
 
-        for (DropEntry entry : RevenantDrops.getDrops(getTier())) {
-            ItemStack stack = entry.roll(level, this.random, slayerLevel);
-            if (!stack.isEmpty()) {
-                this.spawnAtLocation(stack);
-            }
+        // one sound, for the rarest item that dropped, heard only by the attached player
+        if (rarest != null && slayerPlayer != null) {
+            slayerPlayer.playNotifySound(rarest.getSound(), SoundSource.PLAYERS, rarest.getVolume(), rarest.getPitch());
         }
     }
     // attaches to the first player it hits (TEMPORARY, replace once spawn logic exists)

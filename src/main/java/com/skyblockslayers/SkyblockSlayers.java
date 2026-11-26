@@ -3,6 +3,7 @@ package com.skyblockslayers;
 import com.skyblockslayers.entities.ModEntities;
 import com.skyblockslayers.items.ModItems;
 import com.skyblockslayers.slayer.ModAttachments;
+import com.skyblockslayers.slayer.ModSounds;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.ModContainer;
@@ -15,5 +16,6 @@ public class SkyblockSlayers {
         ModEntities.register(modEventBus);
         ModItems.register(modEventBus);
         ModAttachments.register(modEventBus);
+        ModSounds.register(modEventBus);
     }
 }

@@ -1,0 +1,14 @@
+{
+  "occasional_drop": {
+    "sounds": ["skyblockslayers:occasional_drop"]
+  },
+  "rare_drop": {
+    "sounds": ["skyblockslayers:rare_drop"]
+  },
+  "very_rare_drop": {
+    "sounds": ["skyblockslayers:very_rare_drop"]
+  },
+  "level_up": {
+    "sounds": ["skyblockslayers:level_up"]
+  }
+}

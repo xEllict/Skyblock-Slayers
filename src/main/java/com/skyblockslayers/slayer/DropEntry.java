@@ -19,6 +19,10 @@ public record DropEntry(ItemFactory factory, int minCount, int maxCount, double 
         ItemStack create(ServerLevel level, int count);
     }
 
+    public DropRarity rarity() {
+        return DropRarity.fromChance(chancePercent);
+    }
+
     /**
      * A normal item with a count range. "revenant_flesh" means skyblockslayers:revenant_flesh.
      * For other mods or vanilla, write the full id, e.g. "minecraft:diamond".
