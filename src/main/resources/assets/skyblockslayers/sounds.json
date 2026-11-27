@@ -10,5 +10,8 @@
   },
   "level_up": {
     "sounds": ["skyblockslayers:level_up"]
+  },
+  "boss_spawning": {
+    "sounds": ["skyblockslayers:boss_spawning"]
   }
 }

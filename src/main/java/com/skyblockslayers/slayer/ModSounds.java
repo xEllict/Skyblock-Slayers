@@ -15,6 +15,7 @@ public class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> RARE_DROP = sound("rare_drop");
     public static final DeferredHolder<SoundEvent, SoundEvent> VERY_RARE_DROP = sound("very_rare_drop");
     public static final DeferredHolder<SoundEvent, SoundEvent> LEVEL_UP = sound("level_up");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BOSS_SPAWNING = sound("boss_spawning");
 
     private static DeferredHolder<SoundEvent, SoundEvent> sound(String name) {
         return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(

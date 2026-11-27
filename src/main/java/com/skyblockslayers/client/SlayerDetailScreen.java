@@ -13,6 +13,9 @@ import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
+import com.skyblockslayers.slayer.ModAttachments;
+import com.skyblockslayers.slayer.SlayerData;
+import com.skyblockslayers.slayer.SlayerRequirements;
 
 public class SlayerDetailScreen extends SlayerPanelScreen {
     private static final int TIER_COUNT = 5;
@@ -42,6 +45,7 @@ public class SlayerDetailScreen extends SlayerPanelScreen {
     @Override
     protected void buildWidgets() {
         tierButtons.clear();
+        SlayerData data = getData();
         for (int i = 0; i < TIER_COUNT; i++) {
             int tier = i + 1;
             Button button = Button.builder(Component.literal("T" + tier), b -> onTierClicked(tier))
@@ -49,13 +53,18 @@ public class SlayerDetailScreen extends SlayerPanelScreen {
                             top + TOP_PADDING + i * (BUTTON_HEIGHT + SPACING),
                             BUTTON_WIDTH, BUTTON_HEIGHT)
                     .build();
+            button.active = SlayerRequirements.isTierUnlocked(data, slayer, tier);
             tierButtons.add(button);
             this.addRenderableWidget(button);
         }
     }
 
+    private SlayerData getData() {
+        return this.minecraft.player.getData(ModAttachments.SLAYER_DATA);
+    }
+
     // The hover text for each tier button. Put your own info here (use \n for new lines).
-    private Component getTierInfo(int tier) {
+    private Component getUnlockedTierInfo(int tier) {
         MutableComponent text = Component.empty();
         if(slayer == SlayerType.REVENANT_HORROR){
             RevenantTier stats = RevenantTier.byTier(tier);
@@ -114,6 +123,25 @@ public class SlayerDetailScreen extends SlayerPanelScreen {
         return text;
     }
 
+    private Component getTierInfo(int tier) {
+        if (!SlayerRequirements.isTierUnlocked(getData(), slayer, tier)) {
+            return getLockedTierInfo(tier);
+        }
+        return getUnlockedTierInfo(tier);
+    }
+
+    private Component getLockedTierInfo(int tier) {
+        MutableComponent text = Component.empty();
+        text.append(colored("Health: ?\n", ChatFormatting.GRAY));
+        text.append(colored("Melee Damage: ?\n", ChatFormatting.GRAY));
+        text.append("\n");
+        text.append(colored("?\n", ChatFormatting.GRAY));
+        text.append("\n");
+        text.append(colored("Unlock by slaying a Tier " + SlayerRequirements.toRoman(tier - 1) + " "
+                + slayer.getDisplayName().getString() + "!", ChatFormatting.RED));
+        return text;
+    }
+
     private static MutableComponent colored(String text, ChatFormatting... formatting) {
         return Component.literal(text).withStyle(formatting);
     }
@@ -124,6 +152,7 @@ public class SlayerDetailScreen extends SlayerPanelScreen {
 
     // Called when a tier button is clicked. Nothing happens yet.
     private void onTierClicked(int tier) {
+        this.minecraft.setScreen(new SlayerConfirmScreen(slayer, tier, this));
     }
 
     // ---- text size (1.0 = vanilla size, lower = smaller) ----

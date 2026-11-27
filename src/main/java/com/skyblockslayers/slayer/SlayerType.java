@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.BossEvent;
 
 public enum SlayerType implements StringRepresentable {
     REVENANT_HORROR("Revenant Horror", "revenant_horror", "Zombie"),
@@ -36,6 +37,16 @@ public enum SlayerType implements StringRepresentable {
 
     public ResourceLocation getIcon() {
         return icon;
+    }
+
+    public BossEvent.BossBarColor getBarColor() {
+        return switch (this) {
+            case REVENANT_HORROR -> BossEvent.BossBarColor.GREEN;
+            case TARANTULA_BROODFATHER -> BossEvent.BossBarColor.RED;
+            case SKELETON_SLAYER -> BossEvent.BossBarColor.WHITE;
+            case INFERNO_DEMONLORD -> BossEvent.BossBarColor.YELLOW; // vanilla boss bars have no orange
+            case VOIDGLOOM_SERAPH -> BossEvent.BossBarColor.PURPLE;
+        };
     }
 
     @Override

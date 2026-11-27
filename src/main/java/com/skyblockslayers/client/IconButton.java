@@ -32,8 +32,11 @@ public class IconButton extends AbstractButton {
     @Override
     public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.renderWidget(graphics, mouseX, mouseY, partialTick);
+        if (!this.active) {
+            graphics.setColor(0.4F, 0.4F, 0.4F, 1.0F); // darkened when locked
+        }
         graphics.blit(icon, getX() + (getWidth() - 16) / 2, getY() + (getHeight() - 16) / 2, 0, 0, 16, 16, 16, 16);
-    }
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);    }
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput output) {

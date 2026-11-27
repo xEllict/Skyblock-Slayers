@@ -94,6 +94,7 @@ public class RevenantHorror extends Monster {
     private enum State { NORMAL, MAD, ENRAGED }
     private State state = State.NORMAL;
     private int stateTicks = 0;
+    private boolean questBoss = false;
 
     private static final ResourceKey<DamageType> TRUE_DAMAGE = ResourceKey.create(
             Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("skyblockslayers", "true_damage"));
@@ -224,6 +225,7 @@ public class RevenantHorror extends Monster {
         if (attachedPlayer != null) {
             tag.putUUID("AttachedPlayer", attachedPlayer);
         }
+        tag.putBoolean("QuestBoss", questBoss);
     }
 
     @Override
@@ -238,6 +240,7 @@ public class RevenantHorror extends Monster {
         if (tag.hasUUID("AttachedPlayer")) {
             attachedPlayer = tag.getUUID("AttachedPlayer");
         }
+        questBoss = tag.getBoolean("QuestBoss");
         setState(State.NORMAL);
     }
 
@@ -282,6 +285,10 @@ public class RevenantHorror extends Monster {
     public void tick() {
         super.tick();
         if (this.getHealth() <= 0) return;
+        if (questBoss && !SlayerQuestManager.isBossActive(this.getUUID())) {
+            this.discard(); // its quest failed or ended (or the world was reloaded), so it goes away
+            return;
+        }
         if (!this.level().isClientSide) {
             updateHealthBar();
             tickEnrageCycle();
@@ -493,6 +500,7 @@ public class RevenantHorror extends Monster {
                 .withStyle(ChatFormatting.YELLOW)
                 .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_PURPLE))
                 .append(progressText));
+        SlayerQuestManager.completeQuest(player);
     }
 
     @Override
@@ -531,6 +539,10 @@ public class RevenantHorror extends Monster {
         if (rarest != null && slayerPlayer != null) {
             slayerPlayer.playNotifySound(rarest.getSound(), SoundSource.PLAYERS, rarest.getVolume(), rarest.getPitch());
         }
+    }
+
+    public void setQuestBoss(boolean questBoss) {
+        this.questBoss = questBoss;
     }
     // attaches to the first player it hits (TEMPORARY, replace once spawn logic exists)
     @Override
