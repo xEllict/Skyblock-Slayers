@@ -140,37 +140,27 @@ Not yet started
 Not yet started
 </details>
 
-<h2>Progression Status For Slayer Bosses</h2>
+<br><br>
 
 <details>
-<summary>Revenant Horror</summary>
+<summary>To Do Next (in any order):</summary>
 
-- T1: Done
-- T2: Done
-- T3: Done
-- T4: Done
-- Atoned Horror (T5): Not started
+- add items and recipes for boss crafts, such as revenant falchion, wand of healing-atonement,
+zombie-reaper armour line; including zombie heart-reaper mask
+<br><br>
+- add slayer xp bar, RNG Meter and slayer statistics (boss kill counts etc.) to slayer menu
+<br><br>
+- add vitality system for wand of atonement/florid zombie item lines to use
+<br><br>
+- add misc. item functionality - currently just foul flesh, use on a furnace to speed up its ticks by 2x for TBD amount of time
+<br><br>
+- add slayer minibosses for revenant horror tiers 3 and 4
+<br><br>
+- give slayer levels permanent stat buffs as well as recipe unlocks (do recipe unlocks with adding them or something)
+
 </details>
 
-<details>
-<summary>Tarantula Broodfather</summary>
-Not yet started
-</details>
 
-<details>
-<summary>Skeleton Slayer</summary>
-Not yet started, haven't figured out name either
-</details>
-
-<details>
-<summary>Inferno Demonlord</summary>
-Not yet started
-</details>
-
-<details>
-<summary>Voidgloom Seraph</summary>
-Not yet started
-</details>
 
 <h1>DISCLAIMER</h1>
 I, the creator of this mod have used Artificial Intelligence to help in the
