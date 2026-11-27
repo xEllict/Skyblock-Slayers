@@ -45,6 +45,16 @@ public record SlayerProgress(int xp, int rngMeterXp, List<Integer> bossCompletio
         return new SlayerProgress(xp, rngMeterXp + amount, bossCompletions);
     }
 
+    public SlayerProgress withXp(int value) {
+        return new SlayerProgress(value, rngMeterXp, bossCompletions);
+    }
+
+    public SlayerProgress withCompletions(int tier, int value) {
+        List<Integer> updated = new ArrayList<>(bossCompletions);
+        updated.set(tier - 1, value);
+        return new SlayerProgress(xp, rngMeterXp, updated);
+    }
+
     public SlayerProgress withRngMeterXp(int value) {
         return new SlayerProgress(xp, value, bossCompletions);
     }
